@@ -1,20 +1,34 @@
 const { response } = require('express');
 
+// post request
 const createUser = (req, res = response) => {
 
-	res.json({
-		message: 'register'
+	const { name, email, password } = req.body;
+	
+	res.status(201).json({
+		ok: true,
+		msg: 'User created',
+		name,
+		email,
+		password
 	});
 }
 
-const loginUser = (req, res) => {
+// post request
+const loginUser = (req, res = response) => {
+
+	const { email, password } = req.body;
 	
 	res.json({
-		message: 'login'
+		ok: true,
+		msg: 'User logged in',
+		email,
+		password
 	});
 }
 
-const renewToken = (req, res) => {
+// get request
+const renewToken = (req, res = response) => {
 	
 	res.json({
 		message: 'renew'

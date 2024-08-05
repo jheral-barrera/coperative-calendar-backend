@@ -1,37 +1,112 @@
 const { response } = require('express');
+const bcrypt = require('bcryptjs');
+
+const User = require('../models/user-model');
+
+const { generateJWT } = require('../helpers/jwt');
 
 // post request
-const createUser = (req, res = response) => {
+const createUser = async (req, res = response) => {
 
-	const { name, email, password } = req.body;
-	
-	res.status(201).json({
-		ok: true,
-		msg: 'User created',
-		name,
-		email,
-		password
-	});
+	const { email, password } = req.body;
+
+	try {
+
+		let user = await User.findOne({ email });
+
+		if ( user ) return res.status(400).json({
+			ok: false,
+			msg: 'User with this email already exists'
+		});
+
+		user = new User( req.body );
+
+		// * Encriptar la contraseña
+		const salt = bcrypt.genSaltSync();
+		user.password = bcrypt.hashSync(user.password, salt);
+
+		await user.save();
+
+		// * Generar json web token
+		const token = await generateJWT(user._id, user.name);
+		
+		res.status(201).json({
+			ok: true,
+			msg: 'User created',
+			uid: user._id,
+			name: user.name,
+			token
+		});
+
+	} catch (error) {
+
+		console.log(error);
+		res.status(500).json({
+			ok: false,
+			msg: 'Error from server.'
+		});
+
+	}
 }
 
 // post request
-const loginUser = (req, res = response) => {
+const loginUser = async (req, res = response) => {
 
 	const { email, password } = req.body;
+
+	try {
+		
+		const user = await User.findOne({ email });
+
+		if ( !user ) return res.status(400).json({
+			ok: false,
+			msg: 'User not found with this email'
+		});
+
+		// * Confirmar la contraseña
+		const validPassword = bcrypt.compareSync(password, user.password);
+
+		if ( !validPassword ) return res.status(400).json({
+			ok: false,
+			msg: 'Invalid password'
+		});
+
+		// * Generar json web token
+		const token = await generateJWT(user._id, user.name);
+
+		res.status(200).json({
+			ok: true,
+			msg: 'User logged in',
+			email,
+			password,
+			token
+		});
+		
+	} catch (error) {
+
+		console.log(error);
+		res.status(500).json({
+			ok: false,
+			msg: 'Error from server.'
+		});
+
+	}
 	
-	res.json({
-		ok: true,
-		msg: 'User logged in',
-		email,
-		password
-	});
 }
 
 // get request
-const renewToken = (req, res = response) => {
-	
-	res.json({
-		message: 'renew'
+const renewToken = async (req, res = response) => {
+
+	const { uid, name } = req;
+
+	// * Actualizar el token
+	const token = await generateJWT(uid, name);
+
+	res.status(200).json({
+		ok: true,
+		uid,
+		name,
+		token
 	});
 }
 

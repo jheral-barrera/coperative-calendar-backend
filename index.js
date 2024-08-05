@@ -20,8 +20,7 @@ app.use(express.json());
 
 // * RUTAS
 app.use('/api/auth', require('./routes/auth'));
-
-// todo: crud events - create, read, update, delete
+app.use('/api/events', require('./routes/events'));
 
 app.listen(process.env.PORT, () => {
 	console.log(`Server is running on port ${process.env.PORT}`);

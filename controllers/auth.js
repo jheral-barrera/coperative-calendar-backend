@@ -33,7 +33,7 @@ const createUser = async (req, res = response) => {
 		res.status(201).json({
 			ok: true,
 			msg: 'User created',
-			uid: user._id,
+			_id: user._id,
 			name: user.name,
 			token
 		});
@@ -77,7 +77,8 @@ const loginUser = async (req, res = response) => {
 		res.status(200).json({
 			ok: true,
 			msg: 'User logged in',
-			email,
+			_id: user._id,
+			name: user.name,
 			password,
 			token
 		});
@@ -92,6 +93,33 @@ const loginUser = async (req, res = response) => {
 
 	}
 	
+}
+
+// delete request
+const deleteUser = async (req, res = response) => {
+	const { userId } = req.params.id;
+
+	try {
+
+		const user = await User.findByIdAndDelete(userId);
+
+		res.status(200).json({
+			ok: true,
+			msg: 'User deleted',
+			name: user.name,
+			email: user.email,
+		});
+
+
+	} catch (error) {
+
+		console.log(error);
+		return res.status(400).json({
+			ok: false,
+			msg: 'Error deletening user',
+			error
+		});
+	}
 }
 
 // get request
@@ -113,5 +141,6 @@ const renewToken = async (req, res = response) => {
 module.exports = {
 	createUser,
 	loginUser,
+	deleteUser,
 	renewToken
 }

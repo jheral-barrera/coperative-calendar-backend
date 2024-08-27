@@ -10,7 +10,7 @@ const { jwtValidator } = require('../middlewares/jwtValidator');
 
 const router = Router();
 
-const { createUser, loginUser, renewToken } = require('../controllers/auth');
+const { createUser, loginUser, deleteUser, renewToken } = require('../controllers/auth');
 
 router.post(
 	'/', 
@@ -32,6 +32,15 @@ router.post(
 	], 
 	createUser
 );
+
+router.delete(
+	'/:id', 
+	[
+		check('id', 'The id is not correct').isMongoId(),
+		fieldValidator
+	],
+	deleteUser
+)
 
 router.get('/renew', jwtValidator, renewToken);
 
